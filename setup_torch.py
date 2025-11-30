@@ -13,10 +13,15 @@ if sys.platform == 'win32':
 else:
     CXX_FLAGS = ['-g']
     if sys.platform == 'darwin':
-        os.environ['MACOSX_DEPLOYMENT_TARGET'] = '10.11'
+        # M4 Mac requires macOS 11.0+, use appropriate deployment target
+        os.environ['MACOSX_DEPLOYMENT_TARGET'] = '11.0'
+        # Add M4-specific optimizations
+        CXX_FLAGS.extend(['-O3', '-mcpu=apple-m4'])
     else:
         CXX_FLAGS.append('-fopenmp')
-    os.environ["TORCH_CUDA_ARCH_LIST"] = "3.7+PTX;5.0;6.0;6.1;6.2;7.0;7.5"
+    # Only set CUDA arch list on non-Mac systems (Macs don't use CUDA)
+    if sys.platform != 'darwin':
+        os.environ["TORCH_CUDA_ARCH_LIST"] = "3.7+PTX;5.0;6.0;6.1;6.2;7.0;7.5"
 
 ext_modules = [
     CppExtension(

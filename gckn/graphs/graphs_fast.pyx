@@ -141,7 +141,7 @@ def get_paths(graph, int k):
     cdef int64_t[:] prev_counts = np.zeros(k, dtype=np.int64)
 
     cdef int i, j
-    cdef int max_size = n * d ** (k - 1) * 10
+    cdef int max_size = <int>(n * d ** (k - 1) * 10)
 
     cdef uint16_t[:, :, ::1] all_paths = np.zeros((k, max_size, k), dtype=np.uint16)
 
@@ -151,7 +151,7 @@ def get_paths(graph, int k):
                 visited[j] = False
             clear_stack(vs)
             g.all_paths(i, visited, vs, k - 1, all_paths, all_counts)
-            for j in range(k):  
+            for j in range(k):
                 counts[i, j] = all_counts[j] - prev_counts[j]
                 prev_counts[j] = all_counts[j]
 
@@ -176,7 +176,7 @@ def get_walks(graph, int k):
     cdef int64_t[:] prev_counts = np.zeros(k, dtype=np.int64)
 
     cdef int i, j
-    cdef int max_size = n * d ** (k - 1) * (dmax)
+    cdef int max_size = <int>(n * d ** (k - 1) * dmax)
 
     cdef uint16_t[:, :, ::1] all_paths = np.zeros((k, max_size, k), dtype=np.uint16)
 
@@ -184,7 +184,7 @@ def get_walks(graph, int k):
         for i in range(n):
             clear_stack(vs)
             g.all_walks(i, vs, k - 1, all_paths, all_counts)
-            for j in range(k):  
+            for j in range(k):
                 counts[i, j] = all_counts[j] - prev_counts[j]
                 prev_counts[j] = all_counts[j]
 

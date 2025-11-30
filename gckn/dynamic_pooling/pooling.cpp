@@ -1,20 +1,14 @@
 #include <torch/extension.h>
 #include <ATen/ParallelOpenMP.h>
-#include <TH/THBlas.h>
 #include <vector>
 
-
-template<typename T>
-inline void THBlas_axpy(int64_t n, T a, T *x, int64_t incx, T *y, int64_t incy);
-
-#define AXPY_SPECIALIZATION(ctype,name) \
-    template<> \
-    inline void THBlas_axpy<ctype>(int64_t n, ctype a, ctype *x, int64_t incx, \
-                        ctype *y, int64_t incy) { \
-        TH ## name ## Blas_axpy(n, a, x, incx, y, incy); \
+// Simple AXPY implementation (y = a*x + y)
+template<typename scalar_t>
+inline void axpy(int64_t n, scalar_t a, scalar_t *x, int64_t incx, scalar_t *y, int64_t incy) {
+    for (int64_t i = 0; i < n; ++i) {
+        y[i * incy] += a * x[i * incx];
     }
-
-AT_FORALL_SCALAR_TYPES(AXPY_SPECIALIZATION)
+}
 
 
 template <typename scalar_t>
@@ -133,7 +127,7 @@ void dpooling_sum_forward_worker(
             if (mean)
                 val = 1. / (e - s);
             for (int64_t k = s; k < e; ++k) {
-                THBlas_axpy<scalar_t>(hidden_size, val,
+                axpy<scalar_t>(hidden_size, val,
                     input_ptr + k * hidden_size, 1,
                     output_ptr + row * hidden_size, 1);
             }
@@ -184,7 +178,7 @@ void dpooling_sum_backward_worker(
             if (mean)
                 val = 1. / (e - s);
             for (int64_t k = s; k < e; ++k) {
-                THBlas_axpy<scalar_t>(hidden_size, val,
+                axpy<scalar_t>(hidden_size, val,
                     d_output_ptr + row * hidden_size, 1,
                     d_input_ptr + k * hidden_size, 1);
             }

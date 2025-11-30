@@ -1,0 +1,17 @@
+name: graphit
+channels:
+  - pytorch
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.11
+  - numpy>=1.24.0
+  - scipy>=1.10.0
+  - cython>=0.29.23
+  - scikit-learn>=1.2.0
+  - matplotlib>=3.7.0
+  - networkx>=3.0
+  - pytorch::pytorch=2.2.0
+  - pytorch::torchvision
+  - pytorch::torchaudio
+  - pip
