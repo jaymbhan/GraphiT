@@ -35,7 +35,7 @@ def load_args():
     parser.add_argument('--nb-layers', type=int, default=10)
     parser.add_argument('--dim-hidden', type=int, default=64)
     parser.add_argument('--pos-enc', choices=[None,
-                        'diffusion', 'pstep', 'adj'], default=None)
+                        'diffusion', 'pstep', 'adj', 'shortest_path'], default=None)
     parser.add_argument('--lappe', action='store_true', help='use laplacian PE')
     parser.add_argument('--lap-dim', type=int, default=8, help='dimension for laplacian PE')
     parser.add_argument('--p', type=int, default=1, help='p step random walk kernel')
@@ -87,7 +87,7 @@ def load_args():
                     os.makedirs(outdir)
                 except Exception:
                     pass
-        lapdir = 'NoPE' if not args.lappe else 'Lap_{}'.format(args.lap_dim) 
+        lapdir = 'NoPE' if not args.lappe else 'Lap_{}'.format(args.lap_dim)
         outdir = outdir + '/{}'.format(lapdir)
         if not os.path.exists(outdir):
             try:

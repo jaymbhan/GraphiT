@@ -36,7 +36,7 @@ def load_args():
     parser.add_argument('--nb-layers', type=int, default=3)
     parser.add_argument('--dim-hidden', type=int, default=64)
     parser.add_argument('--pos-enc', choices=[None,
-                        'diffusion', 'pstep', 'adj'], default=None)
+                        'diffusion', 'pstep', 'adj', 'shortest_path'], default=None)
     parser.add_argument('--gckn-dim', type=int, default=32, help='dimension for laplacian PE')
     parser.add_argument('--gckn-path', type=int, default=5, help='path size for gckn')
     parser.add_argument('--gckn-sigma', type=float, default=0.6)
@@ -96,7 +96,7 @@ def load_args():
                 except Exception:
                     pass
         lapdir = 'gckn_{}_{}_{}_{}_{}_{}'.format(args.gckn_path, args.gckn_dim, args.gckn_sigma, args.gckn_pooling,
-            args.gckn_agg, args.gckn_normalize) 
+            args.gckn_agg, args.gckn_normalize)
         outdir = outdir + '/{}'.format(lapdir)
         if not os.path.exists(outdir):
             try:
@@ -290,7 +290,7 @@ def main():
         pos_encoder.apply_to(dset, split='all')
         train_dset.pe_list = [dset.pe_list[i] for i in train_fold_idx]
         val_dset.pe_list = [dset.pe_list[i] for i in val_fold_idx]
-    
+
     train_dset.lap_pe_list = gckn_pos_enc_values[:len(train_dset)]
     if args.test:
         val_dset.lap_pe_list = gckn_pos_enc_values[len(train_dset) - len(val_dset):len(train_dset)]

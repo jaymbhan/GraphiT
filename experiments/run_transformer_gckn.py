@@ -36,7 +36,7 @@ def load_args():
     parser.add_argument('--nb-layers', type=int, default=10)
     parser.add_argument('--dim-hidden', type=int, default=64)
     parser.add_argument('--pos-enc', choices=[None,
-                        'diffusion', 'pstep', 'adj'], default=None)
+                        'diffusion', 'pstep', 'adj', 'shortest_path'], default=None)
     parser.add_argument('--gckn-dim', type=int, default=32, help='dimension for laplacian PE')
     parser.add_argument('--gckn-path', type=int, default=8, help='path size for gckn')
     parser.add_argument('--gckn-sigma', type=float, default=0.6)
@@ -93,7 +93,7 @@ def load_args():
                 except Exception:
                     pass
         lapdir = 'gckn_{}_{}_{}_{}_{}_{}'.format(args.gckn_path, args.gckn_dim, args.gckn_sigma, args.gckn_pooling,
-            args.gckn_agg, args.gckn_normalize) 
+            args.gckn_agg, args.gckn_normalize)
         outdir = outdir + '/{}'.format(lapdir)
         if not os.path.exists(outdir):
             try:

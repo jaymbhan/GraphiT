@@ -14,6 +14,13 @@ from torch_geometric import datasets
 from transformer.models import DiffGraphTransformer, GraphTransformer
 from transformer.data import GraphDataset
 from transformer.position_encoding import LapEncoding, POSENCODINGS
+import transformer.position_encoding as _pe_module
+import inspect
+import sys
+print("DEBUG: Python version:", sys.version)
+print("DEBUG: Python executable:", sys.executable)
+print("DEBUG: position_encoding loaded from:", inspect.getfile(_pe_module))
+print("DEBUG: POSENCODINGS at import time:", list(POSENCODINGS.keys()))
 from transformer.utils import count_parameters
 from timeit import default_timer as timer
 from torch import nn, optim
@@ -35,7 +42,7 @@ def load_args():
     parser.add_argument('--nb-layers', type=int, default=3)
     parser.add_argument('--dim-hidden', type=int, default=64)
     parser.add_argument('--pos-enc', choices=[None,
-                        'diffusion', 'pstep', 'adj'], default=None)
+                        'diffusion', 'pstep', 'adj', "shortest_path"], default=None)
     parser.add_argument('--lappe', action='store_true', help='use laplacian PE')
     parser.add_argument('--lap-dim', type=int, default=2, help='dimension for laplacian PE')
     parser.add_argument('--p', type=int, default=1, help='p step random walk kernel')
@@ -90,7 +97,7 @@ def load_args():
                     os.makedirs(outdir)
                 except Exception:
                     pass
-        lapdir = 'NoPE' if not args.lappe else 'Lap{}'.format(args.lap_dim) 
+        lapdir = 'NoPE' if not args.lappe else 'Lap{}'.format(args.lap_dim)
         outdir = outdir + '/{}'.format(lapdir)
         if not os.path.exists(outdir):
             try:
@@ -227,7 +234,7 @@ def main():
     dset = datasets.TUDataset(data_path, dset_name)
     n_tags = None#dset[0].num_node_features
     nb_class = dset.num_classes
-    
+
     if args.dataset == 'Mutagenicity':
         nb_samples = 4337
         end_train = int(0.8 * 4337)
@@ -267,6 +274,7 @@ def main():
     pos_encoder = None
     if args.pos_enc is not None:
         pos_encoding_method = POSENCODINGS.get(args.pos_enc, None)
+        print(POSENCODINGS)
         pos_encoding_params_str = ""
         if args.pos_enc == 'diffusion':
             pos_encoding_params = {

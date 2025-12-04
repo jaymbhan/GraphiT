@@ -35,7 +35,7 @@ def load_args():
     parser.add_argument('--nb-layers', type=int, default=3)
     parser.add_argument('--dim-hidden', type=int, default=64)
     parser.add_argument('--pos-enc', choices=[None,
-                        'diffusion', 'pstep', 'adj'],
+                        'diffusion', 'pstep', 'adj', 'shortest_path'],
                         default='diffusion')
     parser.add_argument('--lappe', action='store_true',
                         help='use laplacian PE')
