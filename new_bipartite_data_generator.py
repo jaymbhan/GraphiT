@@ -14,41 +14,95 @@ def generate_random_graph(n):
 
     return G
 
-def get_clique_size(G):
-    return max(len(c) for c in nx.find_cliques(G))
-
-def generate_clique_dataset(num_graphs, min_nodes, max_nodes, output_dir, dataset_name):
+def is_bipartite(G):
     """
-    Generate a dataset of random graphs with their clique sizes as labels in TUDataset format.
+    Check if a graph is bipartite.
+    
+    Args:
+        G: NetworkX graph
+        
+    Returns:
+        1 if the graph is bipartite, 0 otherwise
+    """
+    return 1 if nx.is_bipartite(G) else 0
+
+def generate_random_bipartite_graph(n):
+    """
+    Generate a random bipartite graph with n nodes.
+    
+    Args:
+        n: Total number of nodes
+        
+    Returns:
+        A random bipartite NetworkX graph
+    """
+    # Randomly split nodes into two partitions
+    split = random.randint(1, n - 1)
+    partition_a = list(range(split))
+    partition_b = list(range(split, n))
+    
+    G = nx.Graph()
+    G.add_nodes_from(range(n))
+    
+    # Only add edges between partitions (guarantees bipartite)
+    for u in partition_a:
+        for v in partition_b:
+            if random.random() < 0.5:
+                G.add_edge(u, v)
+    
+    return G
+
+def generate_bipartite_dataset(num_graphs, min_nodes, max_nodes, output_dir, dataset_name):
+    """
+    Generate a dataset of random graphs with bipartite labels (1 if bipartite, 0 otherwise)
+    in TUDataset format.
 
     Args:
-        num_graphs: Number of graphs to generate
+        num_graphs: Number of graphs to generate (will be split evenly between classes)
         min_nodes: Minimum number of nodes per graph
         max_nodes: Maximum number of nodes per graph
         output_dir: Directory to save the dataset files
+        dataset_name: Name of the dataset
     """
     os.makedirs(output_dir, exist_ok=True)
 
-    # Generate random graphs and compute their clique sizes
     graphs = []
     labels = []
-    labels_dict = {4: 0, 5: 0, 6: 0, 7: 0}
-    target_per_size = 1000
+    labels_dict = {0: 0, 1: 0}  # 0: not bipartite, 1: bipartite
+    target_per_class = num_graphs // 2
 
-    total_generated = 0
-    while any(count < target_per_size for count in labels_dict.values()):
+    # Generate bipartite graphs (label=1)
+    while labels_dict[1] < target_per_class:
         n_nodes = random.randint(min_nodes, max_nodes)
-
-        G = generate_random_graph(n_nodes)
-        clique_size = get_clique_size(G)
-
-        if clique_size in labels_dict and labels_dict[clique_size] < target_per_size:
+        G = generate_random_bipartite_graph(n_nodes)
+        
+        # Verify it's actually bipartite and has at least one edge
+        if nx.is_bipartite(G) and G.number_of_edges() > 0:
             graphs.append(G)
-            labels.append(clique_size)
-            labels_dict[clique_size] += 1
-            print(f"Added graph with clique size {clique_size}. Progress: {labels_dict}")
+            labels.append(1)
+            labels_dict[1] += 1
+            if labels_dict[1] % 100 == 0:
+                print(f"Generated {labels_dict[1]} bipartite graphs")
 
-        total_generated += 1
+    # Generate non-bipartite graphs (label=0)
+    while labels_dict[0] < target_per_class:
+        n_nodes = random.randint(min_nodes, max_nodes)
+        G = generate_random_graph(n_nodes)
+        
+        # Only keep if not bipartite
+        if not nx.is_bipartite(G):
+            graphs.append(G)
+            labels.append(0)
+            labels_dict[0] += 1
+            if labels_dict[0] % 100 == 0:
+                print(f"Generated {labels_dict[0]} non-bipartite graphs")
+
+    # Shuffle the dataset to mix bipartite and non-bipartite graphs
+    combined = list(zip(graphs, labels))
+    random.shuffle(combined)
+    graphs, labels = zip(*combined)
+    graphs = list(graphs)
+    labels = list(labels)
 
     # Node numbering is global across all graphs
     node_counter = 0
@@ -86,7 +140,7 @@ def generate_clique_dataset(num_graphs, min_nodes, max_nodes, output_dir, datase
         for label in node_labels:
             f.write(f'{label}\n')
 
-    print(f"Dataset saved!")
+    print(f"Bipartite dataset saved! Class distribution: {labels_dict}")
     return graphs, labels
 
 
