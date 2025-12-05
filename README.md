@@ -166,6 +166,6 @@ mkdir -p cache/pe
 
 cd experiments
 
-export PYTHONPATH=/Users/jaybhan/downlaods/GraphiT:$PYTHONPATH
+export PYTHONPATH=/Users/jaybhan/Downloads/GraphiT:$PYTHONPATH
 
 python run_transformer_cv.py --dataset NCI1 --fold-idx 1 --pos-enc diffusion --beta 1.0
