@@ -6,6 +6,7 @@ from torch_geometric.utils import get_laplacian, to_scipy_sparse_matrix, to_dens
 import numpy as np
 import scipy.sparse as sp
 from scipy.sparse.linalg import expm
+import networkx as nx
 
 
 class PositionEncoding(object):
@@ -142,9 +143,29 @@ class LapEncoding(PositionEncoding):
 
         return dataset
 
+class ShortestPathEncoding(PositionEncoding):
+    def __init__(self, savepath, normalization=None, zero_diag=False):
+        super().__init__(savepath, zero_diag)
+        self.normalization = normalization
+
+    def compute_pe(self, graph):
+        G = nx.from_edgelist(graph.edge_index.t().tolist())
+        spl_dict = dict(nx.all_pairs_shortest_path_length(G))
+        num_nodes = graph.num_nodes
+        spl_array = np.zeros((num_nodes, num_nodes))
+        for i in range(num_nodes):
+            if i in spl_dict:
+                for j, length in spl_dict[i].items():
+                    if i == j:
+                        spl_array[i, j] = 1
+                    else:
+                        spl_array[i, j] = 1/length
+        return torch.from_numpy(spl_array)
+
 
 POSENCODINGS = {
     "diffusion": DiffusionEncoding,
     "pstep": PStepRWEncoding,
     "adj": AdjEncoding,
+    "shortest_path": ShortestPathEncoding
 }

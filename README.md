@@ -130,6 +130,8 @@ NOTES FOR FIONA AND ALLEN ON HOW TO SET UP
 
 # 1. Create conda environment
 
+export PATH="/opt/homebrew/Caskroom/miniconda/base/bin:$PATH"
+
 conda env create -f environment.yml
 
 conda activate graphit
@@ -152,6 +154,8 @@ pip install pandas
 
 pip install "setuptools<60"
 
+pip install networkx
+
 # 3. Build Cython extensions (skip GCKN C++ parts)
 
 make
@@ -162,6 +166,6 @@ mkdir -p cache/pe
 
 cd experiments
 
-export PYTHONPATH=/Users/jaybhan/GraphiT:$PYTHONPATH
+export PYTHONPATH=/Users/jaybhan/downlaods/GraphiT:$PYTHONPATH
 
 python run_transformer_cv.py --dataset NCI1 --fold-idx 1 --pos-enc diffusion --beta 1.0
