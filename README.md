@@ -138,23 +138,23 @@ conda activate graphit
 
 # 2. Install PyTorch Geometric (separately, after PyTorch is installed)
 
-pip install torch-geometric==2.4.0
+python -m pip install torch-geometric==2.4.0
 
-pip install --no-build-isolation torch-scatter -f https://data.pyg.org/whl/torch-2.2.0+cpu.html
+python -m pip install --no-build-isolation torch-scatter -f https://data.pyg.org/whl/torch-2.2.0+cpu.html
 
-pip install --no-build-isolation torch-sparse -f https://data.pyg.org/whl/torch-2.2.0+cpu.html
+python -m pip install --no-build-isolation torch-sparse -f https://data.pyg.org/whl/torch-2.2.0+cpu.html
 
-pip install --no-build-isolation torch-cluster -f https://data.pyg.org/whl/torch-2.2.0+cpu.html
+python -m pip install --no-build-isolation torch-cluster -f https://data.pyg.org/whl/torch-2.2.0+cpu.html
 
-pip install --no-build-isolation torch-spline-conv -f https://data.pyg.org/whl/torch-2.2.0+cpu.html
+python -m pip install --no-build-isolation torch-spline-conv -f https://data.pyg.org/whl/torch-2.2.0+cpu.html
 
-pip install "numpy<2"
+python -m pip install "numpy<2"
 
-pip install pandas
+python -m pip install pandas
 
-pip install "setuptools<60"
+python -m pip install "setuptools<60"
 
-pip install networkx
+python -m pip install networkx
 
 # 3. Build Cython extensions (skip GCKN C++ parts)
 
