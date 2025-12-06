@@ -14,51 +14,88 @@ def generate_random_graph(n):
 
     return G
 
-def is_bipartite(G):
+def generate_random_tree(n):
     """
-    Check if a graph is bipartite.
+    Generate a random tree (acyclic graph) with n nodes.
+    
+    Args:
+        n: Number of nodes
+        
+    Returns:
+        A random tree NetworkX graph
+    """
+    return nx.random_tree(n)
+
+def generate_random_sparse_graph(n, edge_prob=0.15):
+    """
+    Generate a random sparse graph with n nodes.
+    Sparse graphs are more likely to have smaller or no cycles.
+    
+    Args:
+        n: Number of nodes
+        edge_prob: Probability of edge between any two nodes
+        
+    Returns:
+        A random sparse NetworkX graph
+    """
+    G = nx.Graph()
+    G.add_nodes_from(range(n))
+
+    for u, v in itertools.combinations(G.nodes, 2):
+        if random.random() < edge_prob:
+            G.add_edge(u, v)
+
+    return G
+
+def get_longest_cycle_length(G):
+    """
+    Find the length of the longest cycle in an undirected graph.
     
     Args:
         G: NetworkX graph
         
     Returns:
-        1 if the graph is bipartite, 0 otherwise
+        Length of the longest cycle, or 0 if the graph is acyclic
     """
-    return 1 if nx.is_bipartite(G) else 0
+    if G.number_of_edges() == 0:
+        return 0
+    
+    # Convert to directed graph and find all simple cycles
+    # Filter out 2-cycles (which are just back-and-forth on edges)
+    DG = G.to_directed()
+    
+    max_length = 0
+    try:
+        for cycle in nx.simple_cycles(DG):
+            if len(cycle) >= 3:  # Ignore 2-cycles
+                max_length = max(max_length, len(cycle))
+    except nx.NetworkXError:
+        return 0
+    
+    return max_length
 
-def generate_random_bipartite_graph(n):
+def has_cycle(G):
     """
-    Generate a random bipartite graph with n nodes.
+    Check if a graph has any cycles.
     
     Args:
-        n: Total number of nodes
+        G: NetworkX graph
         
     Returns:
-        A random bipartite NetworkX graph
+        1 if the graph has a cycle, 0 otherwise
     """
-    # Randomly split nodes into two partitions
-    split = random.randint(1, n - 1)
-    partition_a = list(range(split))
-    partition_b = list(range(split, n))
-    
-    G = nx.Graph()
-    G.add_nodes_from(range(n))
-    
-    # Only add edges between partitions (guarantees bipartite)
-    for u in partition_a:
-        for v in partition_b:
-            if random.random() < 0.5:
-                G.add_edge(u, v)
-    
-    return G
+    try:
+        nx.find_cycle(G)
+        return 1
+    except nx.NetworkXNoCycle:
+        return 0
 
-def generate_bipartite_dataset(min_nodes, max_nodes, output_dir, dataset_name):
+def generate_cycle_dataset(min_nodes, max_nodes, output_dir, dataset_name):
     """
-    Generate a dataset of random graphs with bipartite labels (1 if bipartite, 0 otherwise)
+    Generate a dataset of random graphs with their longest cycle size as labels
     in TUDataset format.
 
     Args:
-        num_graphs: Number of graphs to generate (will be split evenly between classes)
         min_nodes: Minimum number of nodes per graph
         max_nodes: Maximum number of nodes per graph
         output_dir: Directory to save the dataset files
@@ -68,34 +105,47 @@ def generate_bipartite_dataset(min_nodes, max_nodes, output_dir, dataset_name):
 
     graphs = []
     labels = []
-    labels_dict = {0: 0, 1: 0}  # 0: not bipartite, 1: bipartite
-    target_per_class = 500
+    # Target cycle sizes: 0 (acyclic), 3, 4, 5, 6, 7
+    labels_dict = {0: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
+    target_per_size = 500
 
-    # Generate bipartite graphs (label=1)
-    while labels_dict[1] < target_per_class:
+    total_generated = 0
+    while any(count < target_per_size for count in labels_dict.values()):
         n_nodes = random.randint(min_nodes, max_nodes)
-        G = generate_random_bipartite_graph(n_nodes)
         
-        # Verify it's actually bipartite and has at least one edge
-        if nx.is_bipartite(G) and G.number_of_edges() > 0:
-            graphs.append(G)
-            labels.append(1)
-            labels_dict[1] += 1
-            print(f"Added bipartite graph. Progress: {labels_dict[1]}")
-
-    # Generate non-bipartite graphs (label=0)
-    while labels_dict[0] < target_per_class:
-        n_nodes = random.randint(min_nodes, max_nodes)
-        G = generate_random_graph(n_nodes)
+        # For acyclic graphs, generate trees
+        if labels_dict[0] < target_per_size and random.random() < 0.3:
+            G = generate_random_tree(n_nodes)
+            cycle_len = get_longest_cycle_length(G)
+            if cycle_len == 0:
+                graphs.append(G)
+                labels.append(0)
+                labels_dict[0] += 1
+                print(f"Added acyclic graph. Progress: {labels_dict}")
+                total_generated += 1
+                continue
         
-        # Only keep if not bipartite
-        if not nx.is_bipartite(G):
-            graphs.append(G)
-            labels.append(0)
-            labels_dict[0] += 1
-            print(f"Added non-bipartite graph. Progress: {labels_dict[0]}")
+        # For graphs with small cycles, use sparse graphs
+        if any(labels_dict[k] < target_per_size for k in [3, 4, 5]):
+            G = generate_random_sparse_graph(n_nodes, edge_prob=0.2)
+        else:
+            G = generate_random_graph(n_nodes)
+        
+        cycle_len = get_longest_cycle_length(G)
 
-    # Shuffle the dataset to mix bipartite and non-bipartite graphs
+        if cycle_len in labels_dict and labels_dict[cycle_len] < target_per_size:
+            graphs.append(G)
+            labels.append(cycle_len)
+            labels_dict[cycle_len] += 1
+            print(f"Added graph with longest cycle {cycle_len}. Progress: {labels_dict}")
+
+        total_generated += 1
+        
+        # Safety check to avoid infinite loops
+        if total_generated % 10000 == 0:
+            print(f"Generated {total_generated} graphs so far. Current distribution: {labels_dict}")
+
+    # Shuffle the dataset
     combined = list(zip(graphs, labels))
     random.shuffle(combined)
     graphs, labels = zip(*combined)
@@ -138,7 +188,7 @@ def generate_bipartite_dataset(min_nodes, max_nodes, output_dir, dataset_name):
         for label in node_labels:
             f.write(f'{label}\n')
 
-    print(f"Bipartite dataset saved! Class distribution: {labels_dict}")
+    print(f"Cycle dataset saved! Class distribution: {labels_dict}")
     return graphs, labels
 
 
@@ -172,20 +222,20 @@ if __name__ == "__main__":
     random.seed(42)
     np.random.seed(42)
 
-    dataset_name = "BIPARTITE"
-    num_graphs = 4000
+    dataset_name = "CYCLE"
     min_nodes = 20
     max_nodes = 20
 
     output_directory = f"dataset/TUDataset/{dataset_name}"
-    graphs, labels = generate_bipartite_dataset(
-        num_graphs=num_graphs,
+    graphs, labels = generate_cycle_dataset(
         min_nodes=min_nodes,
         max_nodes=max_nodes,
         output_dir=os.path.join(output_directory, "raw"),
         dataset_name=dataset_name
     )
 
+    num_graphs = len(graphs)
     create_fold_indices(num_graphs=num_graphs, dataset_name=dataset_name, num_folds=10, train_ratio=0.8, val_ratio=0.1)
 
     print("Dataset generated!")
+
