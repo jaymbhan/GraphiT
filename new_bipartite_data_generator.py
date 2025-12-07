@@ -17,10 +17,10 @@ def generate_random_graph(n):
 def is_bipartite(G):
     """
     Check if a graph is bipartite.
-    
+
     Args:
         G: NetworkX graph
-        
+
     Returns:
         1 if the graph is bipartite, 0 otherwise
     """
@@ -29,10 +29,10 @@ def is_bipartite(G):
 def generate_random_bipartite_graph(n):
     """
     Generate a random bipartite graph with n nodes.
-    
+
     Args:
         n: Total number of nodes
-        
+
     Returns:
         A random bipartite NetworkX graph
     """
@@ -40,16 +40,16 @@ def generate_random_bipartite_graph(n):
     split = random.randint(1, n - 1)
     partition_a = list(range(split))
     partition_b = list(range(split, n))
-    
+
     G = nx.Graph()
     G.add_nodes_from(range(n))
-    
+
     # Only add edges between partitions (guarantees bipartite)
     for u in partition_a:
         for v in partition_b:
             if random.random() < 0.5:
                 G.add_edge(u, v)
-    
+
     return G
 
 def generate_bipartite_dataset(min_nodes, max_nodes, output_dir, dataset_name):
@@ -69,13 +69,13 @@ def generate_bipartite_dataset(min_nodes, max_nodes, output_dir, dataset_name):
     graphs = []
     labels = []
     labels_dict = {0: 0, 1: 0}  # 0: not bipartite, 1: bipartite
-    target_per_class = 500
+    target_per_class = 2000
 
     # Generate bipartite graphs (label=1)
     while labels_dict[1] < target_per_class:
         n_nodes = random.randint(min_nodes, max_nodes)
         G = generate_random_bipartite_graph(n_nodes)
-        
+
         # Verify it's actually bipartite and has at least one edge
         if nx.is_bipartite(G) and G.number_of_edges() > 0:
             graphs.append(G)
@@ -87,7 +87,7 @@ def generate_bipartite_dataset(min_nodes, max_nodes, output_dir, dataset_name):
     while labels_dict[0] < target_per_class:
         n_nodes = random.randint(min_nodes, max_nodes)
         G = generate_random_graph(n_nodes)
-        
+
         # Only keep if not bipartite
         if not nx.is_bipartite(G):
             graphs.append(G)
@@ -96,11 +96,13 @@ def generate_bipartite_dataset(min_nodes, max_nodes, output_dir, dataset_name):
             print(f"Added non-bipartite graph. Progress: {labels_dict[0]}")
 
     # Shuffle the dataset to mix bipartite and non-bipartite graphs
+    """
     combined = list(zip(graphs, labels))
     random.shuffle(combined)
     graphs, labels = zip(*combined)
     graphs = list(graphs)
     labels = list(labels)
+    """
 
     # Node numbering is global across all graphs
     node_counter = 0
@@ -179,7 +181,6 @@ if __name__ == "__main__":
 
     output_directory = f"dataset/TUDataset/{dataset_name}"
     graphs, labels = generate_bipartite_dataset(
-        num_graphs=num_graphs,
         min_nodes=min_nodes,
         max_nodes=max_nodes,
         output_dir=os.path.join(output_directory, "raw"),

@@ -159,7 +159,7 @@ class ShortestPathEncoding(PositionEncoding):
                     if i == j:
                         spl_array[i, j] = 1
                     else:
-                        spl_array[i, j] = 1/length
+                        spl_array[i, j] = 2.718 ** (-length)
         return torch.from_numpy(spl_array)
 
 

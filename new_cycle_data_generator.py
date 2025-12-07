@@ -17,24 +17,24 @@ def generate_random_graph(n):
 def generate_random_tree(n):
     """
     Generate a random tree (acyclic graph) with n nodes.
-    
+
     Args:
         n: Number of nodes
-        
+
     Returns:
         A random tree NetworkX graph
     """
-    return nx.random_tree(n)
+    return nx.random_labeled_tree(n)
 
 def generate_random_sparse_graph(n, edge_prob=0.15):
     """
     Generate a random sparse graph with n nodes.
     Sparse graphs are more likely to have smaller or no cycles.
-    
+
     Args:
         n: Number of nodes
         edge_prob: Probability of edge between any two nodes
-        
+
     Returns:
         A random sparse NetworkX graph
     """
@@ -50,20 +50,20 @@ def generate_random_sparse_graph(n, edge_prob=0.15):
 def get_longest_cycle_length(G):
     """
     Find the length of the longest cycle in an undirected graph.
-    
+
     Args:
         G: NetworkX graph
-        
+
     Returns:
         Length of the longest cycle, or 0 if the graph is acyclic
     """
     if G.number_of_edges() == 0:
         return 0
-    
+
     # Convert to directed graph and find all simple cycles
     # Filter out 2-cycles (which are just back-and-forth on edges)
     DG = G.to_directed()
-    
+
     max_length = 0
     try:
         for cycle in nx.simple_cycles(DG):
@@ -71,16 +71,16 @@ def get_longest_cycle_length(G):
                 max_length = max(max_length, len(cycle))
     except nx.NetworkXError:
         return 0
-    
+
     return max_length
 
 def has_cycle(G):
     """
     Check if a graph has any cycles.
-    
+
     Args:
         G: NetworkX graph
-        
+
     Returns:
         1 if the graph has a cycle, 0 otherwise
     """
@@ -107,14 +107,13 @@ def generate_cycle_dataset(min_nodes, max_nodes, output_dir, dataset_name):
     labels = []
     # Target cycle sizes: 0 (acyclic), 3, 4, 5, 6, 7
     labels_dict = {0: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
-    target_per_size = 500
+    target_per_size = 667
 
     total_generated = 0
     while any(count < target_per_size for count in labels_dict.values()):
         n_nodes = random.randint(min_nodes, max_nodes)
-        
         # For acyclic graphs, generate trees
-        if labels_dict[0] < target_per_size and random.random() < 0.3:
+        if labels_dict[0] < target_per_size:
             G = generate_random_tree(n_nodes)
             cycle_len = get_longest_cycle_length(G)
             if cycle_len == 0:
@@ -124,14 +123,12 @@ def generate_cycle_dataset(min_nodes, max_nodes, output_dir, dataset_name):
                 print(f"Added acyclic graph. Progress: {labels_dict}")
                 total_generated += 1
                 continue
-        
+
         # For graphs with small cycles, use sparse graphs
-        if any(labels_dict[k] < target_per_size for k in [3, 4, 5]):
-            G = generate_random_sparse_graph(n_nodes, edge_prob=0.2)
-        else:
-            G = generate_random_graph(n_nodes)
-        
+        G = generate_random_sparse_graph(n_nodes, edge_prob=0.05)
+
         cycle_len = get_longest_cycle_length(G)
+        print(f"Cycle length: {cycle_len}")
 
         if cycle_len in labels_dict and labels_dict[cycle_len] < target_per_size:
             graphs.append(G)
@@ -140,17 +137,19 @@ def generate_cycle_dataset(min_nodes, max_nodes, output_dir, dataset_name):
             print(f"Added graph with longest cycle {cycle_len}. Progress: {labels_dict}")
 
         total_generated += 1
-        
+
         # Safety check to avoid infinite loops
         if total_generated % 10000 == 0:
             print(f"Generated {total_generated} graphs so far. Current distribution: {labels_dict}")
 
     # Shuffle the dataset
+    """
     combined = list(zip(graphs, labels))
     random.shuffle(combined)
     graphs, labels = zip(*combined)
     graphs = list(graphs)
     labels = list(labels)
+    """
 
     # Node numbering is global across all graphs
     node_counter = 0
@@ -238,4 +237,3 @@ if __name__ == "__main__":
     create_fold_indices(num_graphs=num_graphs, dataset_name=dataset_name, num_folds=10, train_ratio=0.8, val_ratio=0.1)
 
     print("Dataset generated!")
-
