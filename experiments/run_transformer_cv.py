@@ -225,11 +225,12 @@ def main():
     torch.manual_seed(args.seed)
     np.random.seed(args.seed)
     print(args)
-    data_path = '../dataset/TUDataset'
+    data_path = "../dataset/TUDataset"
 
     dset_name = args.dataset
     if args.dataset == 'PTC':
         dset_name = 'PTC_MR'
+
 
     dset = datasets.TUDataset(data_path, dset_name)
     n_tags = None#dset[0].num_node_features
