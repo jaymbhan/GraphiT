@@ -364,6 +364,8 @@ class BetweennessCentrality(PositionEncoding):
                 if s != i:
                     for t in range(num_nodes):
                         if t != i:
+                            if not nx.has_path(G, s, t):
+                                continue
                             shortest_paths_s_t = nx.all_shortest_paths(G, source=s, target=t)
                             num_shortest_paths = 0
                             num_shortest_paths_intermed = 0
