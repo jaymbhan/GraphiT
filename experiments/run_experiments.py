@@ -5,7 +5,7 @@ import os
 import sys
 from datetime import datetime
 
-DATASETS = ['BIPARTITE', 'CYCLE']
+DATASETS = ['CLIQUE', 'BIPARTITE', 'CYCLE']
 POS_ENCS = ['diffusion', 'pstep', 'adj', 'shortest_path', 'graphlet', 'coloring', 'no', 'estrada', 'cosine', 'clustering_coefficient', 'betweenness_centrality']
 
 def extract_test_accuracy(output):
@@ -54,7 +54,7 @@ def run_experiment(dataset, pos_enc, fold_idx=1, beta=1.0):
 def main():
     results_file = 'experiment_results.csv'
     with open(results_file, 'w', newline='') as csvfile:
-        fieldnames = ['dataset', 'pos_enc', 'test_accuracy', 'first_val_acc_1_epoch']
+        fieldnames = ['dataset', 'pos_enc', 'test_accuracy']
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
         writer.writeheader()
     for dataset in DATASETS:
@@ -63,7 +63,7 @@ def main():
             test_acc, first_val_acc_1_epoch = run_experiment(dataset, pos_enc, fold_idx=1, beta=1.0)
             with open(results_file, 'a', newline='') as csvfile:
                 writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
-                writer.writerow({'dataset': dataset, 'pos_enc': pos_enc, 'test_accuracy': test_acc if test_acc is not None else 'FAILED', 'first_val_acc_1_epoch': first_val_acc_1_epoch if first_val_acc_1_epoch is not None else 'N/A'})
+                writer.writerow({'dataset': dataset, 'pos_enc': pos_enc, 'test_accuracy': test_acc if test_acc is not None else 'FAILED'})
 
 if __name__ == "__main__":
     main()
