@@ -1,2 +1,7 @@
 dataset,pos_enc,test_accuracy,first_val_acc_1_epoch
 BIPARTITE,diffusion,0.9323,N/A
+BIPARTITE,pstep,0.985,N/A
+BIPARTITE,adj,FAILED,N/A
+BIPARTITE,shortest_path,0.9373,N/A
+BIPARTITE,graphlet,FAILED,N/A
+BIPARTITE,coloring,FAILED,N/A
