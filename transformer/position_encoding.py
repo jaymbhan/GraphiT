@@ -293,7 +293,7 @@ class EstradaEncoding(PositionEncoding):
 
         return K.real
 
-class InverseCosineEncoding(PositionEncoding):
+class CosineEncoding(PositionEncoding):
     def __init__(self, savepath, normalization=None, zero_diag=False):
         super().__init__(savepath, zero_diag)
         self.normalization = normalization
@@ -312,7 +312,7 @@ class InverseCosineEncoding(PositionEncoding):
         cos_vals = torch.cos(torch.pi * eigvals)
         cos_vals = torch.clamp(cos_vals, min=epsilon, max=-epsilon)
 
-        r_vals = 1.0 / cos_vals
+        r_vals = cos_vals
         r_vals = torch.clamp(r_vals, -r_max, r_max)
 
         R = torch.diag(r_vals)
@@ -395,7 +395,7 @@ POSENCODINGS = {
     "graphlet": GraphletEncoding,
     "coloring": ColoringEncoding,
     "estrada": EstradaEncoding,
-    "inverse_cosine": InverseCosineEncoding,
+    "cosine": CosineEncoding,
     "clustering_coefficient": ClusteringCoefficientEncoding,
     "betweenness_centrality": BetweennessCentrality,
     "no": NoEncoding
