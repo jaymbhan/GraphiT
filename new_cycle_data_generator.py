@@ -106,8 +106,8 @@ def generate_cycle_dataset(min_nodes, max_nodes, output_dir, dataset_name):
     graphs = []
     labels = []
     # Target cycle sizes: 0 (acyclic), 3, 4, 5, 6, 7
-    labels_dict = {17: 0, 18: 0, 19: 0, 20: 0}
-    target_per_size = 1000
+    labels_dict = {9: 0, 10: 0, 11: 0, 12: 0, 13: 0, 14: 0, 15: 0, 16: 0}
+    target_per_size = 500
 
     total_generated = 0
     while any(count < target_per_size for count in labels_dict.values()):
@@ -125,9 +125,9 @@ def generate_cycle_dataset(min_nodes, max_nodes, output_dir, dataset_name):
                 total_generated += 1
                 continue
         """
-        
+
         # For graphs with small cycles, use sparse graphs
-        G = generate_random_sparse_graph(n_nodes, edge_prob=0.5)
+        G = generate_random_sparse_graph(n_nodes, edge_prob=0.1)
 
         cycle_len = get_longest_cycle_length(G)
         print(f"Cycle length: {cycle_len}")
@@ -145,13 +145,13 @@ def generate_cycle_dataset(min_nodes, max_nodes, output_dir, dataset_name):
             print(f"Generated {total_generated} graphs so far. Current distribution: {labels_dict}")
 
     # Shuffle the dataset
-    """
+
     combined = list(zip(graphs, labels))
     random.shuffle(combined)
     graphs, labels = zip(*combined)
     graphs = list(graphs)
     labels = list(labels)
-    """
+
 
     # Node numbering is global across all graphs
     node_counter = 0

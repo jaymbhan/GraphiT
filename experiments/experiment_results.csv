@@ -1,0 +1,2 @@
+dataset,pos_enc,test_accuracy,first_val_acc_1_epoch
+BIPARTITE,diffusion,0.9323,N/A

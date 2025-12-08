@@ -52,7 +52,7 @@ def generate_clique_dataset(min_nodes, max_nodes, output_dir, dataset_name):
 
         total_generated += 1
 
-        
+
 
     # Node numbering is global across all graphs
     node_counter = 0
@@ -131,7 +131,6 @@ if __name__ == "__main__":
 
     output_directory = f"dataset/TUDataset/{dataset_name}"
     graphs, labels = generate_clique_dataset(
-        num_graphs=num_graphs,
         min_nodes=min_nodes,
         max_nodes=max_nodes,
         output_dir=os.path.join(output_directory, "raw"),

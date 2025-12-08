@@ -9,9 +9,10 @@ def generate_random_graph(n):
     G.add_nodes_from(range(n))
 
     for u, v in itertools.combinations(G.nodes, 2):
-        if random.random()<0.5:
+        if random.random()<0.1:
             G.add_edge(u,v)
 
+    print(f"Random graph with {G.number_of_edges()} edges")
     return G
 
 def is_bipartite(G):
@@ -50,7 +51,48 @@ def generate_random_bipartite_graph(n):
             if random.random() < 0.5:
                 G.add_edge(u, v)
 
+    print(f"Random bipartite graph with {G.number_of_edges()} edges")
+
     return G
+
+def generate_random_tripartite_graph(n):
+    """
+    Generate a random tripartite graph with n nodes.
+
+    Args:
+        n: Total number of nodes
+
+    Returns:
+        A random tripartite NetworkX graph
+    """
+    # Randomly split nodes into three partitions
+    split1 = random.randint(1, n - 1)
+    split2 = random.randint(1, n - 1)
+    partition_a = list(range(split1))
+    partition_b = list(range(split1, split2))
+    partition_c = list(range(split2, n))
+
+    G = nx.Graph()
+    G.add_nodes_from(range(n))
+
+    # Only add edges between partitions (guarantees bipartite)
+    for u in partition_a:
+        for v in partition_b:
+            if random.random() < 0.5:
+                G.add_edge(u, v)
+        for v in partition_c:
+            if random.random() < 0.5:
+                G.add_edge(u, v)
+
+    for u in partition_b:
+        for v in partition_c:
+            if random.random() < 0.5:
+                G.add_edge(u, v)
+
+    print(f"Random bipartite graph with {G.number_of_edges()} edges")
+
+    return G
+
 
 def generate_bipartite_dataset(min_nodes, max_nodes, output_dir, dataset_name):
     """
@@ -86,23 +128,21 @@ def generate_bipartite_dataset(min_nodes, max_nodes, output_dir, dataset_name):
     # Generate non-bipartite graphs (label=0)
     while labels_dict[0] < target_per_class:
         n_nodes = random.randint(min_nodes, max_nodes)
-        G = generate_random_graph(n_nodes)
+        G = generate_random_tripartite_graph(n_nodes)
 
-        # Only keep if not bipartite
-        if not nx.is_bipartite(G):
+        # Only keep if not bipartite and has at least one edge
+        if not nx.is_bipartite(G) and G.number_of_edges() > 0:
             graphs.append(G)
             labels.append(0)
             labels_dict[0] += 1
             print(f"Added non-bipartite graph. Progress: {labels_dict[0]}")
 
     # Shuffle the dataset to mix bipartite and non-bipartite graphs
-    """
     combined = list(zip(graphs, labels))
     random.shuffle(combined)
     graphs, labels = zip(*combined)
     graphs = list(graphs)
     labels = list(labels)
-    """
 
     # Node numbering is global across all graphs
     node_counter = 0

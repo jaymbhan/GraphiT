@@ -2,10 +2,11 @@ import subprocess
 import csv
 import re
 import os
+import sys
 from datetime import datetime
 
-DATASETS = ['CLIQUE', 'BIPARTITE', 'CYCLE']
-POS_ENCS = ['shortest_path', 'graphlet', 'coloring', 'no', 'estrada', 'inverse_cosine', 'clustering_coefficient', 'betweenness_centrality']
+DATASETS = ['BIPARTITE', 'CYCLE']
+POS_ENCS = ['diffusion', 'pstep', 'adj', 'shortest_path', 'graphlet', 'coloring', 'no', 'estrada', 'cosine', 'clustering_coefficient', 'betweenness_centrality']
 
 def extract_test_accuracy(output):
     match = re.search(r'test Acc ([0-9.]+)', output)
@@ -27,12 +28,25 @@ def extract_first_val_acc_1(output):
     return None
 
 def run_experiment(dataset, pos_enc, fold_idx=1, beta=1.0):
-    cmd = ['python', 'run_transformer_cv.py', '--dataset', dataset, '--fold-idx', str(fold_idx), '--pos-enc', pos_enc, '--beta', str(beta)]
-    print(f"Running: {' '.join(cmd)}")
+    cmd = ['python', '-u', 'run_transformer_cv.py', '--dataset', dataset, '--fold-idx', str(fold_idx), '--pos-enc', pos_enc, '--beta', str(beta)]
+    print(f"\nRunning: {' '.join(cmd)}")
+    print("="*80)
+    sys.stdout.flush()
+
     try:
-        result = subprocess.run(cmd, capture_output=True, text=True,timeout=3600)
-        test_acc = extract_test_accuracy(result.stdout)
-        first_val_acc_1_epoch = extract_first_val_acc_1(result.stdout)
+        # Run with Popen to capture AND display simultaneously
+        process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, bufsize=1)
+
+        output = []
+        for line in process.stdout:
+            print(line, end='')
+            output.append(line)
+
+        process.wait(timeout=3600)
+
+        full_output = ''.join(output)
+        test_acc = extract_test_accuracy(full_output)
+        first_val_acc_1_epoch = extract_first_val_acc_1(full_output)
         return test_acc, first_val_acc_1_epoch
     except subprocess.TimeoutExpired:
         return None, None

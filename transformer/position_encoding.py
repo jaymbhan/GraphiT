@@ -305,11 +305,12 @@ class CosineEncoding(PositionEncoding):
         #get e-vects and e-vals
         eigvals, eigvecs = torch.linalg.eigh(adj)
         eigvals = eigvals.real
+        eigvals*=2/max(eigvals)
         eigvecs = eigvecs.real
 
         #cosine values, capped so that the subsequent fraction calculation
         #doesn't return too big of a value
-        cos_vals = torch.cos(torch.pi * eigvals)
+        cos_vals = torch.cos(torch.pi/4 * eigvals)
         cos_vals = torch.clamp(cos_vals, min=epsilon, max=-epsilon)
 
         r_vals = cos_vals
