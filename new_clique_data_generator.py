@@ -44,7 +44,10 @@ def generate_clique_dataset(min_nodes, max_nodes, output_dir, dataset_name):
         G = generate_random_graph(n_nodes)
         clique_size = get_clique_size(G)
 
-        if clique_size in labels_dict and labels_dict[clique_size] < target_per_size:
+        # Check for isolated nodes
+        isolated_nodes = [node for node in G.nodes() if G.degree(node) == 0]
+
+        if clique_size in labels_dict and labels_dict[clique_size] < target_per_size and len(isolated_nodes) == 0:
             graphs.append(G)
             labels.append(clique_size)
             labels_dict[clique_size] += 1

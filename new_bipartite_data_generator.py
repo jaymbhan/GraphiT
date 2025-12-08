@@ -118,8 +118,9 @@ def generate_bipartite_dataset(min_nodes, max_nodes, output_dir, dataset_name):
         n_nodes = random.randint(min_nodes, max_nodes)
         G = generate_random_bipartite_graph(n_nodes)
 
-        # Verify it's actually bipartite and has at least one edge
-        if nx.is_bipartite(G) and G.number_of_edges() > 0:
+        # Verify it's actually bipartite, has at least one edge, and no isolated nodes
+        isolated_nodes = [node for node in G.nodes() if G.degree(node) == 0]
+        if nx.is_bipartite(G) and G.number_of_edges() > 0 and len(isolated_nodes) == 0:
             graphs.append(G)
             labels.append(1)
             labels_dict[1] += 1
@@ -130,8 +131,9 @@ def generate_bipartite_dataset(min_nodes, max_nodes, output_dir, dataset_name):
         n_nodes = random.randint(min_nodes, max_nodes)
         G = generate_random_tripartite_graph(n_nodes)
 
-        # Only keep if not bipartite and has at least one edge
-        if not nx.is_bipartite(G) and G.number_of_edges() > 0:
+        # Only keep if not bipartite, has at least one edge, and no isolated nodes
+        isolated_nodes = [node for node in G.nodes() if G.degree(node) == 0]
+        if not nx.is_bipartite(G) and G.number_of_edges() > 0 and len(isolated_nodes) == 0:
             graphs.append(G)
             labels.append(0)
             labels_dict[0] += 1

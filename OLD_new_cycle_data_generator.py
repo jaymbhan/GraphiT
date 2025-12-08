@@ -1,4 +1,5 @@
 import itertools
+from typing import Any
 import numpy as np
 import networkx as nx
 import random
@@ -9,12 +10,54 @@ def generate_random_graph(n):
     G.add_nodes_from(range(n))
 
     for u, v in itertools.combinations(G.nodes, 2):
-        if random.random()<0.05:
+        if random.random()<0.5:
             G.add_edge(u,v)
 
     return G
 
-def get_cycle_size(G):
+def generate_random_tree(n):
+    """
+    Generate a random tree (acyclic graph) with n nodes.
+
+    Args:
+        n: Number of nodes
+
+    Returns:
+        A random tree NetworkX graph
+    """
+    return nx.random_labeled_tree(n)
+
+def generate_random_sparse_graph(n, edge_prob=0.15):
+    """
+    Generate a random sparse graph with n nodes.
+    Sparse graphs are more likely to have smaller or no cycles.
+
+    Args:
+        n: Number of nodes
+        edge_prob: Probability of edge between any two nodes
+
+    Returns:
+        A random sparse NetworkX graph
+    """
+    G = nx.Graph()
+    G.add_nodes_from(range(n))
+
+    for u, v in itertools.combinations(G.nodes, 2):
+        if random.random() < edge_prob:
+            G.add_edge(u, v)
+
+    return G
+
+def get_longest_cycle_length(G):
+    """
+    Find the length of the longest cycle in an undirected graph.
+
+    Args:
+        G: NetworkX graph
+
+    Returns:
+        Length of the longest cycle, or 0 if the graph is acyclic
+    """
     if G.number_of_edges() == 0:
         return 0
 
@@ -32,35 +75,61 @@ def get_cycle_size(G):
 
     return max_length
 
+def has_cycle(G):
+    """
+    Check if a graph has any cycles.
 
+    Args:
+        G: NetworkX graph
 
+    Returns:
+        1 if the graph has a cycle, 0 otherwise
+    """
+    try:
+        nx.find_cycle(G)
+        return 1
+    except nx.NetworkXNoCycle:
+        return 0
 
 def generate_cycle_dataset(min_nodes, max_nodes, output_dir, dataset_name):
     """
-    Generate a dataset of random graphs with their cycle sizes as labels in TUDataset format.
+    Generate a dataset of random graphs with their longest cycle size as labels
+    in TUDataset format.
 
     Args:
-        num_graphs: Number of graphs to generate
         min_nodes: Minimum number of nodes per graph
         max_nodes: Maximum number of nodes per graph
         output_dir: Directory to save the dataset files
+        dataset_name: Name of the dataset
     """
     os.makedirs(output_dir, exist_ok=True)
 
-    # Generate random graphs and compute their cycle sizes
     graphs = []
     labels = []
+    # Target cycle sizes: 0 (acyclic), 3, 4, 5, 6, 7
     labels_dict = {0: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
     target_per_size = 667
 
     total_generated = 0
     while any(count < target_per_size for count in labels_dict.values()):
         n_nodes = random.randint(min_nodes, max_nodes)
+        # For acyclic graphs, generate trees
+        if labels_dict[0] < target_per_size:
+            G = generate_random_tree(n_nodes)
+            cycle_len = get_longest_cycle_length(G)
+            if cycle_len == 0:
+                graphs.append(G)
+                labels.append(0)
+                labels_dict[0] += 1
+                print(f"Added acyclic graph. Progress: {labels_dict}")
+                total_generated += 1
+                continue
 
-        G = generate_random_graph(n_nodes)
-        cycle_size = get_cycle_size(G)
+        # For graphs with small cycles, use sparse graphs
+        G = generate_random_sparse_graph(n_nodes, edge_prob=0.05)
 
-        # Check for isolated nodes
+        cycle_len = get_longest_cycle_length(G)
+
         isolated_nodes = [node for node in G.nodes() if G.degree(node) == 0]
 
 
@@ -71,15 +140,27 @@ def generate_cycle_dataset(min_nodes, max_nodes, output_dir, dataset_name):
 
         isolated_nodes = [node for node in G.nodes() if G.degree(node) == 0]
 
-        if cycle_size in labels_dict and labels_dict[cycle_size] < target_per_size and len(isolated_nodes) == 0:
+        print(f"Cycle length: {cycle_len}")
+        if cycle_len in labels_dict and labels_dict[cycle_len] < target_per_size and len(isolated_nodes) == 0:
             graphs.append(G)
-            labels.append(cycle_size)
-            labels_dict[cycle_size] += 1
-            print(f"Added graph with cycle size {cycle_size}. Progress: {labels_dict[cycle_size]}")
+            labels.append(cycle_len)
+            labels_dict[cycle_len] += 1
+            print(f"Added graph with longest cycle {cycle_len}. Progress: {labels_dict}")
 
         total_generated += 1
 
+        # Safety check to avoid infinite loops
+        if total_generated % 10000 == 0:
+            print(f"Generated {total_generated} graphs so far. Current distribution: {labels_dict}")
 
+    # Shuffle the dataset
+    """
+    combined = list(zip(graphs, labels))
+    random.shuffle(combined)
+    graphs, labels = zip(*combined)
+    graphs = list(graphs)
+    labels = list(labels)
+    """
 
     # Node numbering is global across all graphs
     node_counter = 0
@@ -117,7 +198,7 @@ def generate_cycle_dataset(min_nodes, max_nodes, output_dir, dataset_name):
         for label in node_labels:
             f.write(f'{label}\n')
 
-    print(f"Dataset saved!")
+    print(f"Cycle dataset saved! Class distribution: {labels_dict}")
     return graphs, labels
 
 
@@ -152,7 +233,6 @@ if __name__ == "__main__":
     np.random.seed(42)
 
     dataset_name = "CYCLE"
-    num_graphs = 4000
     min_nodes = 20
     max_nodes = 20
 
@@ -164,6 +244,7 @@ if __name__ == "__main__":
         dataset_name=dataset_name
     )
 
+    num_graphs = len(graphs)
     create_fold_indices(num_graphs=num_graphs, dataset_name=dataset_name, num_folds=10, train_ratio=0.8, val_ratio=0.1)
 
     print("Dataset generated!")

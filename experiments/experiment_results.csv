@@ -5,3 +5,8 @@ BIPARTITE,adj,FAILED,N/A
 BIPARTITE,shortest_path,0.9373,N/A
 BIPARTITE,graphlet,FAILED,N/A
 BIPARTITE,coloring,FAILED,N/A
+BIPARTITE,no,0.8797,N/A
+BIPARTITE,estrada,FAILED,N/A
+BIPARTITE,cosine,FAILED,N/A
+BIPARTITE,clustering_coefficient,FAILED,N/A
+BIPARTITE,betweenness_centrality,FAILED,N/A
