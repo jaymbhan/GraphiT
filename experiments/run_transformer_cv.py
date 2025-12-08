@@ -42,7 +42,7 @@ def load_args():
     parser.add_argument('--nb-layers', type=int, default=3)
     parser.add_argument('--dim-hidden', type=int, default=64)
     parser.add_argument('--pos-enc', choices=[None,
-                        'diffusion', 'pstep', 'adj', "shortest_path"], default=None)
+                        'diffusion', 'pstep', 'adj', "shortest_path", "graphlet", "coloring", "no", "estrada", "inverse_cosine", "clustering_coefficient", "betweenness_centrality"], default=None)
     parser.add_argument('--lappe', action='store_true', help='use laplacian PE')
     parser.add_argument('--lap-dim', type=int, default=2, help='dimension for laplacian PE')
     parser.add_argument('--p', type=int, default=1, help='p step random walk kernel')
