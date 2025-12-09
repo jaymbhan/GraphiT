@@ -76,7 +76,7 @@ class DiffusionEncoding(PositionEncoding):
 
 
 class PStepRWEncoding(PositionEncoding):
-    def __init__(self, savepath, p=1, beta=0.5, use_edge_attr=False, normalization=None, zero_diag=False):
+    def __init__(self, savepath, p=2, beta=0.5, use_edge_attr=False, normalization=None, zero_diag=False):
         super().__init__(savepath, zero_diag)
         self.p = p
         self.beta = beta
