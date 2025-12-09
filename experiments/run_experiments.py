@@ -64,7 +64,7 @@ def main():
     results_file = 'experiment_results2.csv'
 
     with open(results_file, 'w', newline='') as csvfile:
-        fieldnames = ['dataset', 'pos_enc', 'test_accuracy', 'val_accs', 'train_accs']
+        fieldnames = ['dataset', 'pos_enc', 'test_accuracy', 'val_accs', 'train_loss']
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
         writer.writeheader()
     for dataset in DATASETS:
@@ -77,7 +77,7 @@ def main():
                 'pos_enc': pos_enc,
                 'test_accuracy': test_acc if test_acc is not None else 'FAILED',
                 'val_accs': val_accs_every_20 if val_accs_every_20 is not None else 'FAILED',
-                'train_accs': train_accs_every_20 if train_accs_every_20 is not None else 'FAILED'
+                'train_loss': train_accs_every_20 if train_accs_every_20 is not None else 'FAILED'
             }
 
 
